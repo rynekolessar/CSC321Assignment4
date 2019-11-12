@@ -9,8 +9,6 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.PriorityQueue;
 
-// edge class to hold the edge source, destinationa and the weight of the edge
-
 class GraphEdge {
     private char from;
     private char to;
@@ -20,6 +18,7 @@ class GraphEdge {
         this.to = to;
         this.weight = weight;
     }
+
     public char getFrom() {
         return from;
     }
@@ -31,39 +30,46 @@ class GraphEdge {
     public int getWeight() {
         return weight;
     }
-    public String toString() {
-        return "From: " + from + "\tTo: " + to + "\tWeight: " + weight;
-    }
 }
 
 public class dijkstra {
     public static void main(String[] args) throws FileNotFoundException {
+        String f = "";
+        Scanner in = new Scanner(System.in);
+        System.out.print("Enter the number of the file to test:\n1 (Case1), 2 (Case2), or 3 (Case3): ");
+        int n = in.nextInt(); 
+        in.close();
 
-        File file = new File("Case1.txt"); // input file
-        Scanner obj = new Scanner(file); // scanner object to read data from file
+        if      (n == 1) f = "Case1.txt";
+        else if (n == 2) f = "Case2.txt";
+        else if (n == 3) f = "Case3.txt";
+        else    { System.out.println("Not an option. "); return; }
 
-        char source = 'A'; // source vertex
-        char destination = 'B'; // destination vertex
+        File file = new File(f);
+        Scanner obj = new Scanner(file); 
 
-        ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>(); // list to hold all edges
-        HashSet<Character> uniqueVertices = new HashSet<Character>(); // all unique vertices in map
-        ArrayList<Character> allVertices = new ArrayList<Character>(); // list to hold all vertices
+        char source      = 'A'; 
+        char destination = 'B';
+
+        ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>(); 
+        HashSet<Character> uniqueVertices = new HashSet<Character>(); 
+        ArrayList<Character> allVertices = new ArrayList<Character>();
 
         int numberOfVertices = Integer.parseInt(obj.nextLine());
         
-        while (obj.hasNextLine()) { // while input file has lines left
+        while (obj.hasNextLine()) { 
             String line = obj.nextLine();
-            String vertex[] = line.split(" "); // split the line into source vertex, destination vertex and the weight
+            String vertex[] = line.split(" "); 
 
             GraphEdge edge = new GraphEdge(vertex[0].charAt(0), vertex[1].charAt(0), Integer.parseInt(vertex[2]));
             edges.add(edge);
 
-            if (!uniqueVertices.contains(vertex[0].charAt(0))) { // if vertex not present in unique vertices map, add it in map and arraylist
+            if (!uniqueVertices.contains(vertex[0].charAt(0))) { 
                 uniqueVertices.add(vertex[0].charAt(0));
                 allVertices.add(vertex[0].charAt(0));
             }
 
-            if (!uniqueVertices.contains(vertex[1].charAt(0))) { // if vertex not present in unique vertices map, add it in map and arraylist
+            if (!uniqueVertices.contains(vertex[1].charAt(0))) { 
                 uniqueVertices.add(vertex[1].charAt(0));
                 allVertices.add(vertex[1].charAt(0));
             }
@@ -75,9 +81,8 @@ public class dijkstra {
             distance.put(ch, Integer.MAX_VALUE);
         }
 
-        distance.put(source, 0); // source distance is 0, update in distance map
+        distance.put(source, 0); 
 
-        // comparator to arrange the vertices in the priority queue in min heap fashion
         Comparator<Character> cmp = new Comparator<Character>() {
             public int compare(Character a, Character b) {
                 if (distance.get(a) < distance.get(b))
@@ -91,61 +96,36 @@ public class dijkstra {
             }
         };
 
-        // create a priority queue
-        PriorityQueue<Character> pq = new PriorityQueue<Character>(cmp);// priority queue / min heap to arrange vertices
-                                                                        // in min heap fashion
+        PriorityQueue<Character> pq = new PriorityQueue<Character>(cmp);
 
         for (Character ch : allVertices)
-            pq.add(ch);// add all the vertices to pq
+            pq.add(ch);
 
-        String path = "";// hold the final path from a to b
+        String path = "";
 
-        while (!pq.isEmpty()) { // while there are elements in the pq
-            char ch = pq.remove();// get the vertex
-            path += ch;// append the vertex to path
-            if (ch == destination)// if reached destination
-                break;// loop out
+        while (!pq.isEmpty()) { 
+            char ch = pq.remove();
+            path += ch + " ";
+            if (ch == destination)
+                break;
 
             List<GraphEdge> outVertex = getAllOutgoingEdges(edges, ch);
 
-            for (GraphEdge edge : outVertex) { // for each egde in the outVertex list
-                if (pq.contains(edge.getTo())) { // if the destination vertex in the edge is present in the pq
-                    if (distance.get(ch) + edge.getWeight() < distance.get(edge.getTo())) {// if new distance is less than the old distance
-                        distance.put(edge.getTo(), distance.get(ch) + edge.getWeight());// put new distance
+            for (GraphEdge edge : outVertex) { 
+                if (pq.contains(edge.getTo())) { 
+                    if (distance.get(ch) + edge.getWeight() < distance.get(edge.getTo())) {
+                        distance.put(edge.getTo(), distance.get(ch) + edge.getWeight());
                     }
 
-                    // the below 2 lines are executed to update the priority queue after change to
-                    // distance
-                    pq.remove(edge.getTo());// remove destination vertex of edge to pq
-                    pq.add(edge.getTo());// add destination vertex of edge to pq
+                    pq.remove(edge.getTo());
+                    pq.add(edge.getTo());
                 }
             }
-        }
-        
-        // solution file
-
-        // File output = new File("DijkstraSolution.txt");
-
-        // PrintWriter pw = new PrintWriter(output);
-
-        // pw.println(distance.get(destination));// print the minuimum distance to destination to file
-
-        // pw.println(path);// print the path to file
-
+        }        
         System.out.println(distance.get(destination));
-
-        // print a successful message to the console
-
-        System.out.println("Successful!");
-
-        //pw.flush(); // flush the output to file
-
-        // pw.close(); // close pw
-
-        obj.close(); // close obj
+        System.out.print(path);
+        obj.close();
     }
-
-    // get all the outgoing edges in a list from the source vetrtex
 
     public static List<GraphEdge> getAllOutgoingEdges(ArrayList<GraphEdge> list, char source) {
         List<GraphEdge> result = new ArrayList<GraphEdge>();
